@@ -13,7 +13,7 @@ export default {
       },
     },
     extend: {
-      colors: {
+        colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -47,6 +47,19 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "team-red": {
+          DEFAULT: "hsl(var(--team-red))",
+          foreground: "hsl(var(--team-red-foreground))",
+        },
+        "team-blue": {
+          DEFAULT: "hsl(var(--team-blue))",
+          foreground: "hsl(var(--team-blue-foreground))",
+        },
+        "score-takedown": "hsl(var(--score-takedown))",
+        "score-escape": "hsl(var(--score-escape))",
+        "score-reversal": "hsl(var(--score-reversal))",
+        "score-nearfall": "hsl(var(--score-nearfall))",
+        "score-penalty": "hsl(var(--score-penalty))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
