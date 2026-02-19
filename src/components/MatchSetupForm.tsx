@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MatchSetup } from "@/types/wrestling";
 
 const WEIGHT_CLASSES = [
-  "106", "113", "120", "126", "132", "138", "144", "150",
-  "157", "165", "175", "190", "215", "285"
-];
+"106", "113", "120", "126", "132", "138", "144", "150",
+"157", "165", "175", "190", "215", "285"];
+
 
 interface Props {
   onStart: (setup: MatchSetup) => void;
@@ -21,7 +21,7 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
     redWrestler: "",
     redSchool: "",
     blueWrestler: "",
-    blueSchool: "",
+    blueSchool: ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,7 +31,7 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
   };
 
   const set = (field: keyof MatchSetup, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  setForm((prev) => ({ ...prev, [field]: value }));
 
   const isValid = form.weightClass && form.redWrestler && form.blueWrestler;
 
@@ -59,9 +59,9 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
               <SelectValue placeholder="Select weight class…" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border text-foreground">
-              {WEIGHT_CLASSES.map((w) => (
-                <SelectItem key={w} value={w}>{w} lbs</SelectItem>
-              ))}
+              {WEIGHT_CLASSES.map((w) =>
+              <SelectItem key={w} value={w}>{w} lbs</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -78,8 +78,8 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
                 onChange={(e) => set("redWrestler", e.target.value)}
                 placeholder="Last, First"
                 className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
-                required
-              />
+                required />
+
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">School / Team</Label>
@@ -87,14 +87,14 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
                 value={form.redSchool}
                 onChange={(e) => set("redSchool", e.target.value)}
                 placeholder="School name"
-                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
-              />
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground" />
+
             </div>
           </div>
 
           {/* Blue corner */}
-          <div className="space-y-3 p-4 rounded-lg border border-team-blue/30 bg-team-blue/5">
-            <div className="font-display text-team-blue uppercase tracking-widest text-sm font-semibold">🔵 Blue Corner</div>
+          <div className="space-y-3 p-4 rounded-lg border border-team-blue/30 bg-team-blue/5 border-green-500">
+            <div className="font-display text-team-blue uppercase tracking-widest text-sm font-semibold text-green-500">🔵 GREEN CORNER</div>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">Wrestler Name *</Label>
               <Input
@@ -102,8 +102,8 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
                 onChange={(e) => set("blueWrestler", e.target.value)}
                 placeholder="Last, First"
                 className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
-                required
-              />
+                required />
+
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">School / Team</Label>
@@ -111,8 +111,8 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
                 value={form.blueSchool}
                 onChange={(e) => set("blueSchool", e.target.value)}
                 placeholder="School name"
-                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
-              />
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground" />
+
             </div>
           </div>
         </div>
@@ -120,11 +120,11 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
         <Button
           type="submit"
           disabled={!isValid}
-          className="w-full h-14 font-display text-lg uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 gold-glow disabled:opacity-40 disabled:cursor-not-allowed"
-        >
+          className="w-full h-14 font-display text-lg uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 gold-glow disabled:opacity-40 disabled:cursor-not-allowed">
+
           Start Match
         </Button>
       </form>
-    </div>
-  );
+    </div>);
+
 }
