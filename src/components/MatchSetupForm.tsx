@@ -6,10 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MatchSetup } from "@/types/wrestling";
 
 const WEIGHT_CLASSES = [
-  "105G", "106", "113", "114G", "120", "120G", "126", "126G",
-  "132", "132G", "138", "138G", "144", "145G", "150", "152G",
-  "157", "165", "165G", "175", "185+G", "190", "215", "285"
-];
+"105G", "106", "113", "114G", "120", "120G", "126", "126G",
+"132", "132G", "138", "138G", "144", "145G", "150", "152G",
+"157", "165", "165G", "175", "185+G", "190", "215", "285"];
+
 
 
 interface Props {
@@ -95,7 +95,7 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
           </div>
 
           {/* Blue corner */}
-          <div className="space-y-3 p-4 rounded-lg border border-team-blue/30 bg-team-blue/5 border-green-500">
+          <div className="space-y-3 p-4 rounded-lg border border-team-blue/30 bg-team-blue/5 border-green-500 text-green-500">
             <div className="font-display text-team-blue uppercase tracking-widest text-sm font-semibold text-green-500"> GREEN CORNER</div>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">Wrestler Name *</Label>
