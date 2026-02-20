@@ -18,7 +18,7 @@ function ScoreButton({ label, points, colorClass, onClick }: ScoreBtnProps) {
       onClick={onClick}
       className={`score-btn flex flex-col items-center justify-center rounded-lg p-3 text-foreground border border-white/10 ${colorClass} hover:brightness-110 active:scale-95 w-full`}
     >
-      <span className="font-display text-2xl leading-none font-bold">+{points}</span>
+      <span className="font-display text-2xl leading-none font-bold">{points > 0 ? `+${points}` : points}</span>
       <span className="text-xs uppercase tracking-wider mt-1 opacity-90">{label}</span>
     </button>
   );
@@ -71,12 +71,15 @@ function TeamPanel({ name, school, score, side, onScore }: TeamPanelProps) {
 
       {/* Scoring buttons */}
       <div className="grid grid-cols-2 gap-2">
-        <ScoreButton label="Takedown" points={2} colorClass={btnBg.takedown} onClick={() => onScore("takedown", 2, "Takedown")} />
+        <ScoreButton label="Takedown" points={3} colorClass={btnBg.takedown} onClick={() => onScore("takedown", 3, "Takedown")} />
         <ScoreButton label="Escape" points={1} colorClass={btnBg.escape} onClick={() => onScore("escape", 1, "Escape")} />
         <ScoreButton label="Reversal" points={2} colorClass={btnBg.reversal} onClick={() => onScore("reversal", 2, "Reversal")} />
         <ScoreButton label="Near Fall" points={2} colorClass={btnBg.nearfall2} onClick={() => onScore("nearfall2", 2, "Near Fall (2)")} />
         <ScoreButton label="Near Fall" points={3} colorClass={btnBg.nearfall3} onClick={() => onScore("nearfall3", 3, "Near Fall (3)")} />
+        <ScoreButton label="Near Fall" points={4} colorClass={btnBg.nearfall3} onClick={() => onScore("nearfall3", 4, "Near Fall (4)")} />
         <ScoreButton label="Penalty" points={1} colorClass={btnBg.penalty} onClick={() => onScore("penalty", 1, "Penalty")} />
+        <ScoreButton label="+1 Pt" points={1} colorClass="bg-secondary/80" onClick={() => onScore("escape", 1, "+1 Point")} />
+        <ScoreButton label="-1 Pt" points={-1} colorClass="bg-score-penalty/60" onClick={() => onScore("penalty", -1, "-1 Point")} />
       </div>
     </div>
   );
@@ -113,8 +116,8 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
   const addScore = useCallback((team: "red" | "blue", type: ScoringEvent["type"], points: number, label: string) => {
     const event: ScoringEvent = { id: uid(), team, type, points, period, timestamp: seconds, label };
     setEvents((prev) => [...prev, event]);
-    if (team === "red") setRedScore((s) => s + points);
-    else setBlueScore((s) => s + points);
+    if (team === "red") setRedScore((s) => Math.max(0, s + points));
+    else setBlueScore((s) => Math.max(0, s + points));
   }, [period, seconds]);
 
   const undo = () => {
