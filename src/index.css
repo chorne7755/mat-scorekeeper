@@ -43,8 +43,8 @@
     /* Team colors */
     --team-red: 5 85% 55%;
     --team-red-foreground: 0 0% 100%;
-    --team-blue: 214 80% 52%;
-    --team-blue-foreground: 0 0% 100%;
+    --team-green: 142 65% 40%;
+    --team-green-foreground: 0 0% 100%;
 
     /* Scoring button colors */
     --score-takedown: 142 60% 42%;
@@ -61,7 +61,7 @@
     /* Shadows */
     --shadow-glow-gold: 0 0 24px hsl(43 96% 52% / 0.35);
     --shadow-glow-red: 0 0 20px hsl(5 85% 55% / 0.4);
-    --shadow-glow-blue: 0 0 20px hsl(214 80% 52% / 0.4);
+    --shadow-glow-green: 0 0 20px hsl(142 65% 40% / 0.5);
     --shadow-card: 0 4px 24px hsl(220 20% 4% / 0.6);
 
     /* Sidebar (kept for compatibility) */
@@ -119,8 +119,8 @@
     box-shadow: var(--shadow-glow-red);
   }
 
-  .team-blue-panel {
-    box-shadow: var(--shadow-glow-blue);
+  .team-green-panel {
+    box-shadow: var(--shadow-glow-green);
   }
 
   .gold-glow {
