@@ -102,7 +102,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
         <div className="space-y-3">
           {[...results].reverse().map((r) => {
             const redWon = r.redScore > r.blueScore;
-            const blueWon = r.blueScore > r.redScore;
+            const greenWon = r.blueScore > r.redScore;
             return (
               <div key={r.id} className="scoreboard-panel p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4">
                 {/* Date & weight */}
@@ -123,13 +123,13 @@ export default function MatchResults({ results, onNewMatch }: Props) {
                 <div className="flex items-center gap-3 shrink-0 justify-center">
                   <span className={`font-display text-4xl font-bold ${redWon ? "text-team-red" : "text-muted-foreground"}`}>{r.redScore}</span>
                   <span className="text-muted-foreground font-display text-xl">—</span>
-                  <span className={`font-display text-4xl font-bold ${blueWon ? "text-team-blue" : "text-muted-foreground"}`}>{r.blueScore}</span>
+                  <span className={`font-display text-4xl font-bold ${greenWon ? "text-team-green" : "text-muted-foreground"}`}>{r.blueScore}</span>
                 </div>
 
-                {/* Blue side */}
-                <div className={`flex-1 pl-4 ${blueWon ? "opacity-100" : "opacity-70"}`}>
-                  <div className={`font-display text-lg uppercase ${blueWon ? "text-team-blue" : "text-foreground"}`}>
-                    {blueWon && "🏆"} {r.blueWrestler}
+                {/* Green side */}
+                <div className={`flex-1 pl-4 ${greenWon ? "opacity-100" : "opacity-70"}`}>
+                  <div className={`font-display text-lg uppercase ${greenWon ? "text-team-green" : "text-foreground"}`}>
+                    {greenWon && "🏆"} {r.blueWrestler}
                   </div>
                   {r.blueSchool && <div className="text-muted-foreground text-xs">{r.blueSchool}</div>}
                 </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ScoringEvent, MatchSetup, MatchResult } from "@/types/wrestling";
 
@@ -28,43 +28,38 @@ interface TeamPanelProps {
   name: string;
   school: string;
   score: number;
-  side: "red" | "blue";
+  side: "red" | "green";
   onScore: (type: ScoringEvent["type"], points: number, label: string) => void;
 }
 
 function TeamPanel({ name, school, score, side, onScore }: TeamPanelProps) {
   const isRed = side === "red";
-  const borderColor = isRed ? "border-team-red/50" : "border-team-blue/50";
-  const bgGlow = isRed ? "team-red-panel" : "team-blue-panel";
-  const scoreColor = isRed ? "text-team-red" : "text-team-blue";
-  const labelColor = isRed ? "text-team-red" : "text-team-blue";
-  const btnBg = isRed
-    ? {
-        takedown: "bg-score-takedown/80",
-        escape: "bg-score-escape/80",
-        reversal: "bg-score-reversal/80",
-        nearfall2: "bg-score-nearfall/80",
-        nearfall3: "bg-score-nearfall/90",
-        penalty: "bg-score-penalty/80",
-      }
-    : {
-        takedown: "bg-score-takedown/80",
-        escape: "bg-score-escape/80",
-        reversal: "bg-score-reversal/80",
-        nearfall2: "bg-score-nearfall/80",
-        nearfall3: "bg-score-nearfall/90",
-        penalty: "bg-score-penalty/80",
-      };
+  const borderColor = isRed ? "border-team-red/50" : "border-team-green/50";
+  const bgGlow = isRed ? "team-red-panel" : "team-green-panel";
+  const scoreColor = isRed ? "text-team-red" : "text-team-green";
+  const labelColor = isRed ? "text-team-red" : "text-team-green";
+
+  const btnBg = {
+    takedown: "bg-score-takedown/80",
+    escape: "bg-score-escape/80",
+    reversal: "bg-score-reversal/80",
+    nearfall2: "bg-score-nearfall/80",
+    nearfall3: "bg-score-nearfall/90",
+    penalty: "bg-score-penalty/80",
+  };
 
   return (
     <div className={`scoreboard-panel ${bgGlow} border ${borderColor} p-4 flex flex-col gap-4`}>
       {/* Name & Score */}
       <div className="text-center">
         <div className={`font-display text-xs uppercase tracking-[0.2em] ${labelColor} mb-1`}>
-          {isRed ? "🔴" : "🔵"} {school || (isRed ? "Red Corner" : "Blue Corner")}
+          {isRed ? "🔴" : "🟢"} {school || (isRed ? "Red Corner" : "Green Corner")}
         </div>
         <div className="font-display text-xl truncate text-foreground">{name}</div>
-        <div className={`font-display text-7xl md:text-8xl font-bold leading-none mt-2 ${scoreColor}`} style={{ textShadow: isRed ? "0 0 30px hsl(5,85%,55%,0.6)" : "0 0 30px hsl(214,80%,52%,0.6)" }}>
+        <div
+          className={`font-display text-7xl md:text-8xl font-bold leading-none mt-2 ${scoreColor}`}
+          style={{ textShadow: isRed ? "0 0 30px hsl(5,85%,55%,0.6)" : "0 0 30px hsl(142,65%,40%,0.6)" }}
+        >
           {score}
         </div>
       </div>
@@ -85,6 +80,11 @@ function TeamPanel({ name, school, score, side, onScore }: TeamPanelProps) {
   );
 }
 
+const PERIOD_LABELS = [
+  "Period 1", "Period 2", "Period 3",
+  "OT 1", "OT 2", "OT 3", "OT 4",
+];
+
 interface Props {
   setup: MatchSetup;
   onComplete: (result: MatchResult) => void;
@@ -94,53 +94,38 @@ interface Props {
 export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
   const [period, setPeriod] = useState(1);
   const [redScore, setRedScore] = useState(0);
-  const [blueScore, setBlueScore] = useState(0);
+  const [greenScore, setGreenScore] = useState(0);
   const [events, setEvents] = useState<ScoringEvent[]>([]);
-  const [seconds, setSeconds] = useState(0);
-  const [running, setRunning] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
 
-  // Timer
-  useEffect(() => {
-    if (!running) return;
-    const interval = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(interval);
-  }, [running]);
-
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60).toString().padStart(2, "0");
-    const sec = (s % 60).toString().padStart(2, "0");
-    return `${m}:${sec}`;
-  };
-
   const addScore = useCallback((team: "red" | "blue", type: ScoringEvent["type"], points: number, label: string) => {
-    const event: ScoringEvent = { id: uid(), team, type, points, period, timestamp: seconds, label };
+    const event: ScoringEvent = { id: uid(), team, type, points, period, timestamp: 0, label };
     setEvents((prev) => [...prev, event]);
     if (team === "red") setRedScore((s) => Math.max(0, s + points));
-    else setBlueScore((s) => Math.max(0, s + points));
-  }, [period, seconds]);
+    else setGreenScore((s) => Math.max(0, s + points));
+  }, [period]);
 
   const undo = () => {
     setEvents((prev) => {
       if (prev.length === 0) return prev;
       const last = prev[prev.length - 1];
       if (last.team === "red") setRedScore((s) => Math.max(0, s - last.points));
-      else setBlueScore((s) => Math.max(0, s - last.points));
+      else setGreenScore((s) => Math.max(0, s - last.points));
       return prev.slice(0, -1);
     });
   };
 
   const determineWinType = () => {
-    const diff = Math.abs(redScore - blueScore);
+    const diff = Math.abs(redScore - greenScore);
     if (diff >= 15) return "Technical Fall";
     if (diff >= 8) return "Major Decision";
     return "Decision";
   };
 
   const endMatch = () => {
-    const winner = redScore > blueScore
+    const winner = redScore > greenScore
       ? setup.redWrestler
-      : blueScore > redScore
+      : greenScore > redScore
         ? setup.blueWrestler
         : "Draw";
     const result: MatchResult = {
@@ -152,14 +137,17 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
       blueWrestler: setup.blueWrestler,
       blueSchool: setup.blueSchool,
       redScore,
-      blueScore,
+      blueScore: greenScore,
       winner,
-      winType: redScore === blueScore ? "Draw" : determineWinType(),
+      winType: redScore === greenScore ? "Draw" : determineWinType(),
       periods: period,
       events,
     };
     onComplete(result);
   };
+
+  const periodLabel = PERIOD_LABELS[period - 1] ?? `Period ${period}`;
+  const isOT = period > 3;
 
   return (
     <div className="min-h-screen flex flex-col px-3 py-4 gap-4 max-w-5xl mx-auto">
@@ -170,36 +158,57 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
         </button>
         <div className="text-center">
           <div className="font-display text-primary uppercase tracking-[0.2em] text-xs">{setup.weightClass} lbs</div>
-          <div className="font-display text-foreground text-lg uppercase tracking-wide">Period {period}</div>
+          <div className={`font-display text-lg uppercase tracking-wide ${isOT ? "text-score-nearfall" : "text-foreground"}`}>
+            {periodLabel}
+          </div>
         </div>
-        <div className="font-display text-2xl text-foreground tabular-nums">{formatTime(seconds)}</div>
+        {/* Period navigation */}
+        <div className="flex gap-1">
+          {period > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPeriod((p) => p - 1)}
+              className="font-display uppercase tracking-wider border-border text-muted-foreground hover:bg-muted text-xs px-2"
+            >
+              ← Prev
+            </Button>
+          )}
+          {period < 7 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPeriod((p) => p + 1)}
+              className="font-display uppercase tracking-wider border-border text-muted-foreground hover:bg-muted text-xs px-2"
+            >
+              Next →
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Timer controls */}
-      <div className="flex gap-2 justify-center">
-        <Button
-          variant="outline"
-          onClick={() => setRunning((r) => !r)}
-          className="font-display uppercase tracking-wider border-primary/50 text-primary hover:bg-primary/10"
-        >
-          {running ? "⏸ Pause" : "▶ Start"}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => { setSeconds(0); setRunning(false); }}
-          className="font-display uppercase tracking-wider border-border text-muted-foreground hover:bg-muted"
-        >
-          ↺ Reset
-        </Button>
-        {period < 3 && (
-          <Button
-            variant="outline"
-            onClick={() => { setPeriod((p) => p + 1); setSeconds(0); setRunning(false); }}
-            className="font-display uppercase tracking-wider border-border text-muted-foreground hover:bg-muted"
-          >
-            Period {period + 1} →
-          </Button>
-        )}
+      {/* Period indicator dots */}
+      <div className="flex justify-center gap-2">
+        {PERIOD_LABELS.map((label, i) => {
+          const p = i + 1;
+          const isActive = period === p;
+          const isPast = period > p;
+          const isOvertime = p > 3;
+          return (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              title={label}
+              className={`rounded-full transition-all duration-150 ${isOvertime ? "w-2 h-2" : "w-3 h-3"} ${
+                isActive
+                  ? isOvertime ? "bg-score-nearfall scale-125" : "bg-primary scale-125"
+                  : isPast
+                  ? "bg-muted-foreground/60"
+                  : "bg-muted border border-border"
+              }`}
+            />
+          );
+        })}
       </div>
 
       {/* Scoreboards side by side */}
@@ -214,8 +223,8 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
         <TeamPanel
           name={setup.blueWrestler}
           school={setup.blueSchool}
-          score={blueScore}
-          side="blue"
+          score={greenScore}
+          side="green"
           onScore={(type, pts, label) => addScore("blue", type, pts, label)}
         />
       </div>
@@ -232,12 +241,12 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
           <div className="flex flex-col gap-1 max-h-32 overflow-y-auto pr-1">
             {[...events].reverse().map((ev) => (
               <div key={ev.id} className="flex items-center justify-between text-xs">
-                <span className={ev.team === "red" ? "text-team-red" : "text-team-blue"}>
-                  {ev.team === "red" ? "🔴" : "🔵"} {ev.team === "red" ? setup.redWrestler : setup.blueWrestler}
+                <span className={ev.team === "red" ? "text-team-red" : "text-team-green"}>
+                  {ev.team === "red" ? "🔴" : "🟢"} {ev.team === "red" ? setup.redWrestler : setup.blueWrestler}
                 </span>
                 <span className="text-muted-foreground">{ev.label}</span>
-                <span className="text-primary font-bold">+{ev.points} pts</span>
-                <span className="text-muted-foreground tabular-nums">{formatTime(ev.timestamp)}</span>
+                <span className="text-primary font-bold">{ev.points > 0 ? `+${ev.points}` : ev.points} pts</span>
+                <span className="text-muted-foreground">{PERIOD_LABELS[(ev.period ?? 1) - 1]}</span>
               </div>
             ))}
           </div>
@@ -255,7 +264,7 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
       ) : (
         <div className="scoreboard-panel p-4 border border-primary/40 text-center space-y-3">
           <div className="font-display text-foreground uppercase tracking-wide">
-            Final: <span className="text-team-red">{redScore}</span> — <span className="text-team-blue">{blueScore}</span>
+            Final: <span className="text-team-red">{redScore}</span> — <span className="text-team-green">{greenScore}</span>
           </div>
           <p className="text-muted-foreground text-sm">Confirm end of match?</p>
           <div className="flex gap-3">

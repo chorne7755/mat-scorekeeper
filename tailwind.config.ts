@@ -51,9 +51,9 @@ export default {
           DEFAULT: "hsl(var(--team-red))",
           foreground: "hsl(var(--team-red-foreground))",
         },
-        "team-blue": {
-          DEFAULT: "hsl(var(--team-blue))",
-          foreground: "hsl(var(--team-blue-foreground))",
+        "team-green": {
+          DEFAULT: "hsl(var(--team-green))",
+          foreground: "hsl(var(--team-green-foreground))",
         },
         "score-takedown": "hsl(var(--score-takedown))",
         "score-escape": "hsl(var(--score-escape))",
