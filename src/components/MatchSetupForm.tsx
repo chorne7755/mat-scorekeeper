@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MatchSetup } from "@/types/wrestling";
 
 const WEIGHT_CLASSES = [
-"106", "113", "120", "126", "132", "138", "144", "150",
-"157", "165", "175", "190", "215", "285"];
+  "105G", "106", "113", "114G", "120", "120G", "126", "126G",
+  "132", "132G", "138", "138G", "144", "145G", "150", "152G",
+  "157", "165", "165G", "175", "185+G", "190", "215", "285"
+];
 
 
 interface Props {
