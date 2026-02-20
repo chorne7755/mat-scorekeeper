@@ -70,7 +70,7 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Red corner */}
           <div className="space-y-3 p-4 rounded-lg border border-team-red/30 bg-team-red/5">
-            <div className="font-display text-team-red uppercase tracking-widest text-sm font-semibold">🔴 Red Corner</div>
+            <div className="font-display text-team-red uppercase tracking-widest text-sm font-semibold">RED CORNER</div>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">Wrestler Name *</Label>
               <Input
@@ -94,7 +94,7 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
 
           {/* Blue corner */}
           <div className="space-y-3 p-4 rounded-lg border border-team-blue/30 bg-team-blue/5 border-green-500">
-            <div className="font-display text-team-blue uppercase tracking-widest text-sm font-semibold text-green-500">🔵 GREEN CORNER</div>
+            <div className="font-display text-team-blue uppercase tracking-widest text-sm font-semibold text-green-500"> GREEN CORNER</div>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">Wrestler Name *</Label>
               <Input
