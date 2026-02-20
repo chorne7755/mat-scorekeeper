@@ -97,6 +97,7 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
   const [greenScore, setGreenScore] = useState(0);
   const [events, setEvents] = useState<ScoringEvent[]>([]);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [selectedWinType, setSelectedWinType] = useState("");
 
   const addScore = useCallback((team: "red" | "blue", type: ScoringEvent["type"], points: number, label: string) => {
     const event: ScoringEvent = { id: uid(), team, type, points, period, timestamp: 0, label };
@@ -115,12 +116,15 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
     });
   };
 
-  const determineWinType = () => {
-    const diff = Math.abs(redScore - greenScore);
-    if (diff >= 15) return "Technical Fall";
-    if (diff >= 8) return "Major Decision";
-    return "Decision";
-  };
+  const WIN_TYPES = [
+    { value: "Fall", label: "Fall (Pin)" },
+    { value: "Technical Fall", label: "Technical Fall (TF)" },
+    { value: "Major Decision", label: "Major Decision (MAJ)" },
+    { value: "Decision", label: "Decision (DEC)" },
+    { value: "Forfeit", label: "Forfeit (FF)" },
+    { value: "Injury Default", label: "Injury Default (INJ)" },
+    { value: "Disqualification", label: "Disqualification (DQ)" },
+  ];
 
   const endMatch = () => {
     const winner = redScore > greenScore
@@ -139,7 +143,7 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
       redScore,
       blueScore: greenScore,
       winner,
-      winType: redScore === greenScore ? "Draw" : determineWinType(),
+      winType: selectedWinType || "Decision",
       periods: period,
       events,
     };
@@ -266,12 +270,29 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
           <div className="font-display text-foreground uppercase tracking-wide">
             Final: <span className="text-team-red">{redScore}</span> — <span className="text-team-green">{greenScore}</span>
           </div>
-          <p className="text-muted-foreground text-sm">Confirm end of match?</p>
-          <div className="flex gap-3">
-            <Button onClick={() => setConfirmEnd(false)} variant="outline" className="flex-1 border-border text-muted-foreground hover:bg-muted font-display uppercase tracking-wider">
+          <div className="text-left">
+            <label className="font-display text-xs uppercase tracking-widest text-muted-foreground block mb-2">How did the match end?</label>
+            <div className="grid grid-cols-2 gap-2">
+              {WIN_TYPES.map((wt) => (
+                <button
+                  key={wt.value}
+                  onClick={() => setSelectedWinType(wt.value)}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wide border transition-all ${
+                    selectedWinType === wt.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/40 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {wt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3 pt-1">
+            <Button onClick={() => { setConfirmEnd(false); setSelectedWinType(""); }} variant="outline" className="flex-1 border-border text-muted-foreground hover:bg-muted font-display uppercase tracking-wider">
               Back
             </Button>
-            <Button onClick={endMatch} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-display uppercase tracking-wider">
+            <Button onClick={endMatch} disabled={!selectedWinType} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-display uppercase tracking-wider disabled:opacity-40">
               Confirm & Save
             </Button>
           </div>
