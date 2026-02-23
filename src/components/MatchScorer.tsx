@@ -98,6 +98,9 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
   const [events, setEvents] = useState<ScoringEvent[]>([]);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [selectedWinType, setSelectedWinType] = useState("");
+  const [selectedWinner, setSelectedWinner] = useState<"red" | "green" | "">("");
+  const [periodChoices, setPeriodChoices] = useState<Record<number, { wrestler: string; choice: string }>>({});
+  const [showChoicePrompt, setShowChoicePrompt] = useState<number | null>(null);
 
   const addScore = useCallback((team: "red" | "blue", type: ScoringEvent["type"], points: number, label: string) => {
     const event: ScoringEvent = { id: uid(), team, type, points, period, timestamp: 0, label };
@@ -126,10 +129,29 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
     { value: "Disqualification", label: "Disqualification (DQ)" },
   ];
 
+  const POSITION_CHOICES = ["Neutral", "Top", "Bottom"];
+
+  const handlePeriodChange = (newPeriod: number) => {
+    // When moving to period 2 or 3, prompt for choice if not already set
+    if ((newPeriod === 2 || newPeriod === 3) && !periodChoices[newPeriod]) {
+      setShowChoicePrompt(newPeriod);
+    } else {
+      setPeriod(newPeriod);
+    }
+  };
+
+  const confirmChoice = (wrestler: string, choice: string) => {
+    if (showChoicePrompt) {
+      setPeriodChoices((prev) => ({ ...prev, [showChoicePrompt]: { wrestler, choice } }));
+      setPeriod(showChoicePrompt);
+      setShowChoicePrompt(null);
+    }
+  };
+
   const endMatch = () => {
-    const winner = redScore > greenScore
+    const winner = selectedWinner === "red"
       ? setup.redWrestler
-      : greenScore > redScore
+      : selectedWinner === "green"
         ? setup.blueWrestler
         : "Draw";
     const result: MatchResult = {
@@ -169,10 +191,10 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
         {/* Period navigation */}
         <div className="flex gap-1">
           {period > 1 && (
-            <Button
+          <Button
               variant="outline"
               size="sm"
-              onClick={() => setPeriod((p) => p - 1)}
+              onClick={() => handlePeriodChange(period - 1)}
               className="font-display uppercase tracking-wider border-border text-muted-foreground hover:bg-muted text-xs px-2"
             >
               ← Prev
@@ -182,7 +204,7 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPeriod((p) => p + 1)}
+              onClick={() => handlePeriodChange(period + 1)}
               className="font-display uppercase tracking-wider border-border text-muted-foreground hover:bg-muted text-xs px-2"
             >
               Next →
@@ -191,7 +213,52 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
         </div>
       </div>
 
-      {/* Period indicator dots */}
+      {/* Period position choice prompt */}
+      {showChoicePrompt && (
+        <div className="scoreboard-panel p-4 border border-primary/40 text-center space-y-3">
+          <div className="font-display text-foreground uppercase tracking-wide text-sm">
+            {PERIOD_LABELS[(showChoicePrompt) - 1]} — Who chooses position?
+          </div>
+          {[
+            { label: setup.redWrestler, side: "red" as const },
+            { label: setup.blueWrestler, side: "green" as const },
+          ].map(({ label, side }) => (
+            <div key={side} className="space-y-1">
+              <div className={`font-display text-xs uppercase tracking-widest ${side === "red" ? "text-team-red" : "text-team-green"}`}>
+                {side === "red" ? "🔴" : "🟢"} {label}
+              </div>
+              <div className="flex gap-2 justify-center">
+                {POSITION_CHOICES.map((choice) => (
+                  <button
+                    key={choice}
+                    onClick={() => confirmChoice(label, choice)}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold uppercase tracking-wide border bg-muted/40 text-muted-foreground border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+                  >
+                    {choice}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={() => { setPeriod(showChoicePrompt); setShowChoicePrompt(null); }}
+            className="text-xs text-muted-foreground hover:text-foreground uppercase tracking-wider"
+          >
+            Skip
+          </button>
+        </div>
+      )}
+
+      {/* Period choices display */}
+      {Object.keys(periodChoices).length > 0 && (
+        <div className="flex justify-center gap-4 text-xs">
+          {Object.entries(periodChoices).map(([p, { wrestler, choice }]) => (
+            <span key={p} className="text-muted-foreground">
+              <span className="text-foreground font-semibold">{PERIOD_LABELS[Number(p) - 1]}:</span> {wrestler} → {choice}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="flex justify-center gap-2">
         {PERIOD_LABELS.map((label, i) => {
           const p = i + 1;
@@ -270,6 +337,33 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
           <div className="font-display text-foreground uppercase tracking-wide">
             Final: <span className="text-team-red">{redScore}</span> — <span className="text-team-green">{greenScore}</span>
           </div>
+          {/* Winner selection */}
+          <div className="text-left">
+            <label className="font-display text-xs uppercase tracking-widest text-muted-foreground block mb-2">Who won?</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setSelectedWinner("red")}
+                className={`px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wide border transition-all ${
+                  selectedWinner === "red"
+                    ? "bg-team-red text-foreground border-team-red"
+                    : "bg-muted/40 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                🔴 {setup.redWrestler}
+              </button>
+              <button
+                onClick={() => setSelectedWinner("green")}
+                className={`px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wide border transition-all ${
+                  selectedWinner === "green"
+                    ? "bg-team-green text-foreground border-team-green"
+                    : "bg-muted/40 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                🟢 {setup.blueWrestler}
+              </button>
+            </div>
+          </div>
+          {/* Win type selection */}
           <div className="text-left">
             <label className="font-display text-xs uppercase tracking-widest text-muted-foreground block mb-2">How did the match end?</label>
             <div className="grid grid-cols-2 gap-2">
@@ -289,10 +383,10 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
             </div>
           </div>
           <div className="flex gap-3 pt-1">
-            <Button onClick={() => { setConfirmEnd(false); setSelectedWinType(""); }} variant="outline" className="flex-1 border-border text-muted-foreground hover:bg-muted font-display uppercase tracking-wider">
+            <Button onClick={() => { setConfirmEnd(false); setSelectedWinType(""); setSelectedWinner(""); }} variant="outline" className="flex-1 border-border text-muted-foreground hover:bg-muted font-display uppercase tracking-wider">
               Back
             </Button>
-            <Button onClick={endMatch} disabled={!selectedWinType} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-display uppercase tracking-wider disabled:opacity-40">
+            <Button onClick={endMatch} disabled={!selectedWinType || !selectedWinner} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-display uppercase tracking-wider disabled:opacity-40">
               Confirm & Save
             </Button>
           </div>
