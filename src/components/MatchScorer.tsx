@@ -143,6 +143,17 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
   const confirmChoice = (wrestler: string, choice: string) => {
     if (showChoicePrompt) {
       setPeriodChoices((prev) => ({ ...prev, [showChoicePrompt]: { wrestler, choice } }));
+      const team = wrestler === setup.redWrestler ? "red" : "blue";
+      const event: ScoringEvent = {
+        id: uid(),
+        team: team as "red" | "blue",
+        type: "escape",
+        points: 0,
+        period: showChoicePrompt,
+        timestamp: 0,
+        label: `${PERIOD_LABELS[showChoicePrompt - 1]} Choice: ${choice}`,
+      };
+      setEvents((prev) => [...prev, event]);
       setPeriod(showChoicePrompt);
       setShowChoicePrompt(null);
     }
