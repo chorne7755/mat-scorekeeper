@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { MatchResult } from "@/types/wrestling";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
 
 interface Props {
@@ -8,6 +10,11 @@ interface Props {
 }
 
 export default function MatchResults({ results, onNewMatch }: Props) {
+  const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
+
+  const formatTime = (seconds: number) =>
+    `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+
   const exportToExcel = () => {
     const rows = results.map((r) => ({
       Date: r.date,
@@ -104,7 +111,11 @@ export default function MatchResults({ results, onNewMatch }: Props) {
             const redWon = r.redScore > r.blueScore;
             const greenWon = r.blueScore > r.redScore;
             return (
-              <div key={r.id} className="scoreboard-panel p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4">
+              <div
+                key={r.id}
+                className="scoreboard-panel p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4 cursor-pointer hover:ring-1 hover:ring-primary/50 transition-all"
+                onClick={() => setSelectedMatch(r)}
+              >
                 {/* Date & weight */}
                 <div className="md:w-32 shrink-0 text-center">
                   <div className="font-display text-primary text-lg">{r.weightClass}<span className="text-xs text-muted-foreground ml-1">lbs</span></div>
@@ -145,6 +156,84 @@ export default function MatchResults({ results, onNewMatch }: Props) {
           })}
         </div>
       )}
+
+      {/* Match Detail Dialog */}
+      <Dialog open={!!selectedMatch} onOpenChange={(open) => !open && setSelectedMatch(null)}>
+        <DialogContent className="max-w-lg bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase tracking-wide text-foreground">
+              Match Details
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {selectedMatch?.weightClass} lbs — {selectedMatch?.date}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedMatch && (
+            <div className="space-y-4">
+              {/* Wrestlers & Score */}
+              <div className="flex items-center justify-between gap-4 p-3 rounded bg-muted/30">
+                <div className="text-center flex-1">
+                  <div className="font-display text-sm uppercase text-team-red">{selectedMatch.redWrestler}</div>
+                  {selectedMatch.redSchool && <div className="text-muted-foreground text-xs">{selectedMatch.redSchool}</div>}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="font-display text-3xl font-bold text-team-red">{selectedMatch.redScore}</span>
+                  <span className="text-muted-foreground">—</span>
+                  <span className="font-display text-3xl font-bold text-team-green">{selectedMatch.blueScore}</span>
+                </div>
+                <div className="text-center flex-1">
+                  <div className="font-display text-sm uppercase text-team-green">{selectedMatch.blueWrestler}</div>
+                  {selectedMatch.blueSchool && <div className="text-muted-foreground text-xs">{selectedMatch.blueSchool}</div>}
+                </div>
+              </div>
+
+              {/* Winner & Win Type */}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Winner</span>
+                <span className="font-display uppercase text-primary">{selectedMatch.winner} 🏆</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Win Type</span>
+                <span className="font-semibold uppercase text-foreground">{selectedMatch.winType}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Periods</span>
+                <span className="text-foreground">{selectedMatch.periods}</span>
+              </div>
+
+              {/* Scoring Log */}
+              {selectedMatch.events.length > 0 && (
+                <div>
+                  <h4 className="font-display text-sm uppercase tracking-wider text-muted-foreground mb-2">Scoring Log</h4>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {selectedMatch.events.map((ev) => (
+                      <div
+                        key={ev.id}
+                        className="flex items-center justify-between text-xs p-2 rounded bg-muted/20"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={`font-display uppercase ${ev.team === "red" ? "text-team-red" : "text-team-green"}`}>
+                            {ev.team === "red" ? selectedMatch.redWrestler : selectedMatch.blueWrestler}
+                          </span>
+                          <span className="text-muted-foreground">P{ev.period}</span>
+                          <span className="text-muted-foreground">{formatTime(ev.timestamp)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-foreground">{ev.label}</span>
+                          {ev.points !== 0 && (
+                            <span className="font-bold text-primary">+{ev.points}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
