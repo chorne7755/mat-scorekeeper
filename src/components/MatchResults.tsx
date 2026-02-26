@@ -16,19 +16,25 @@ export default function MatchResults({ results, onNewMatch }: Props) {
     `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
 
   const exportToExcel = () => {
-    const rows = results.map((r) => ({
-      Date: r.date,
-      "Weight Class": `${r.weightClass} lbs`,
-      "Red Wrestler": r.redWrestler,
-      "Red School": r.redSchool || "-",
-      "Red Score": r.redScore,
-      "Blue Wrestler": r.blueWrestler,
-      "Blue School": r.blueSchool || "-",
-      "Blue Score": r.blueScore,
-      Winner: r.winner,
-      "Win Type": r.winType,
-      Periods: r.periods,
-    }));
+    const rows = results.map((r) => {
+      const redTakedowns = r.events.filter((ev) => ev.team === "red" && ev.type === "takedown").length;
+      const greenTakedowns = r.events.filter((ev) => ev.team === "blue" && ev.type === "takedown").length;
+      return {
+        Date: r.date,
+        "Weight Class": `${r.weightClass} lbs`,
+        "Red Wrestler": r.redWrestler,
+        "Red School": r.redSchool || "-",
+        "Red Score": r.redScore,
+        "Green Wrestler": r.blueWrestler,
+        "Green School": r.blueSchool || "-",
+        "Green Score": r.blueScore,
+        "Red Takedowns": redTakedowns,
+        "Green Takedowns": greenTakedowns,
+        Winner: r.winner,
+        "Win Type": r.winType,
+        Periods: r.periods,
+      };
+    });
 
     const ws = XLSX.utils.json_to_sheet(rows);
 
@@ -36,7 +42,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
     ws["!cols"] = [
       { wch: 12 }, { wch: 14 }, { wch: 20 }, { wch: 20 },
       { wch: 10 }, { wch: 20 }, { wch: 20 }, { wch: 10 },
-      { wch: 22 }, { wch: 18 }, { wch: 8 },
+      { wch: 14 }, { wch: 14 }, { wch: 22 }, { wch: 18 }, { wch: 8 },
     ];
 
     const wb = XLSX.utils.book_new();
@@ -50,7 +56,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
           "Match ID": r.id.slice(0, 8),
           "Weight Class": `${r.weightClass} lbs`,
           "Red Wrestler": r.redWrestler,
-          "Blue Wrestler": r.blueWrestler,
+          "Green Wrestler": r.blueWrestler,
           Period: ev.period,
           "Time (mm:ss)": `${Math.floor(ev.timestamp / 60).toString().padStart(2, "0")}:${(ev.timestamp % 60).toString().padStart(2, "0")}`,
           Team: ev.team === "red" ? r.redWrestler : r.blueWrestler,
