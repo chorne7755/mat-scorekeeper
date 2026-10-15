@@ -18,6 +18,7 @@ interface Props {
 }
 
 export default function MatchSetupForm({ onStart, matchCount }: Props) {
+  const [boutNumber, setBoutNumber] = useState<string>(String(matchCount + 1));
   const [form, setForm] = useState<MatchSetup>({
     weightClass: "",
     redWrestler: "",
@@ -41,15 +42,26 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
       {/* Header */}
       <div className="text-center mb-10">
-        <div className="inline-block px-4 py-1 rounded-full border border-primary/40 text-primary text-sm font-semibold uppercase tracking-widest mb-4">
-          Match {matchCount + 1}
-        </div>
         <h1 className="font-display text-5xl md:text-6xl text-foreground mb-2 uppercase tracking-wide">
           Wrestling<br />
           <span className="text-primary">Score Keeper</span>
         </h1>
+        <div className="mt-5 inline-flex items-center gap-3 px-5 py-2 rounded-full border border-primary/40 bg-primary/5">
+          <Label htmlFor="bout-number" className="text-primary text-sm font-semibold uppercase tracking-widest">
+            Bout #
+          </Label>
+          <Input
+            id="bout-number"
+            inputMode="numeric"
+            value={boutNumber}
+            onChange={(e) => setBoutNumber(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))}
+            placeholder="0"
+            className="w-16 h-8 px-1 rounded-none border-0 border-b border-primary/50 bg-transparent text-center font-display text-xl text-primary placeholder:text-primary/40 focus-visible:ring-0 focus-visible:ring-offset-0" />
+
+        </div>
         <p className="text-muted-foreground text-sm mt-3">Enter match details to begin scoring</p>
       </div>
+
 
       {/* Form card */}
       <form onSubmit={handleSubmit} className="w-full max-w-2xl scoreboard-panel p-6 md:p-8 space-y-6">
