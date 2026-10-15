@@ -33,6 +33,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
         Winner: r.winner,
         "Win Type": r.winType,
         Periods: r.periods,
+        "Bout #": r.boutNumber || "-",
       };
     });
 
@@ -42,7 +43,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
     ws["!cols"] = [
       { wch: 12 }, { wch: 14 }, { wch: 20 }, { wch: 20 },
       { wch: 10 }, { wch: 20 }, { wch: 20 }, { wch: 10 },
-      { wch: 14 }, { wch: 14 }, { wch: 22 }, { wch: 18 }, { wch: 8 },
+      { wch: 14 }, { wch: 14 }, { wch: 22 }, { wch: 18 }, { wch: 8 }, { wch: 8 },
     ];
 
     const wb = XLSX.utils.book_new();
@@ -53,7 +54,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
     results.forEach((r) => {
       r.events.forEach((ev) => {
         eventRows.push({
-          "Match ID": r.id.slice(0, 8),
+          "Bout #": r.boutNumber || "-",
           "Weight Class": `${r.weightClass} lbs`,
           "Red Wrestler": r.redWrestler,
           "Green Wrestler": r.blueWrestler,
@@ -70,7 +71,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
       const ws2 = XLSX.utils.json_to_sheet(eventRows);
       ws2["!cols"] = [
         { wch: 10 }, { wch: 14 }, { wch: 20 }, { wch: 20 },
-        { wch: 8 }, { wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 8 },
+        { wch: 8 }, { wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 8 }, { wch: 8 },
       ];
       XLSX.utils.book_append_sheet(wb, ws2, "Scoring Log");
     }
@@ -125,6 +126,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
                 {/* Date & weight */}
                 <div className="md:w-32 shrink-0 text-center">
                   <div className="font-display text-primary text-lg">{r.weightClass}<span className="text-xs text-muted-foreground ml-1">lbs</span></div>
+                  {r.boutNumber && <div className="text-xs font-semibold uppercase tracking-wider text-foreground">Bout #{r.boutNumber}</div>}
                   <div className="text-muted-foreground text-xs">{r.date}</div>
                 </div>
 
@@ -171,7 +173,7 @@ export default function MatchResults({ results, onNewMatch }: Props) {
               Match Details
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {selectedMatch?.weightClass} lbs — {selectedMatch?.date}
+              {selectedMatch?.boutNumber && `Bout #${selectedMatch.boutNumber} — `}{selectedMatch?.weightClass} lbs — {selectedMatch?.date}
             </DialogDescription>
           </DialogHeader>
 

@@ -11,6 +11,7 @@ export type ScoringEvent = {
 export type MatchResult = {
   id: string;
   date: string;
+  boutNumber?: string;
   weightClass: string;
   redWrestler: string;
   redSchool: string;
@@ -25,6 +26,7 @@ export type MatchResult = {
 };
 
 export type MatchSetup = {
+  boutNumber?: string;
   weightClass: string;
   redWrestler: string;
   redSchool: string;
