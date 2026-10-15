@@ -168,6 +168,7 @@ export default function MatchScorer({ setup, onComplete, onCancel }: Props) {
     const result: MatchResult = {
       id: uid(),
       date: new Date().toLocaleDateString(),
+      boutNumber: setup.boutNumber,
       weightClass: setup.weightClass,
       redWrestler: setup.redWrestler,
       redSchool: setup.redSchool,

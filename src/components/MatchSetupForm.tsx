@@ -30,7 +30,7 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.weightClass || !form.redWrestler || !form.blueWrestler) return;
-    onStart(form);
+    onStart({ ...form, boutNumber });
   };
 
   const set = (field: keyof MatchSetup, value: string) =>
