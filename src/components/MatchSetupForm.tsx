@@ -4,11 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MatchSetup } from "@/types/wrestling";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Settings } from "lucide-react";
 
-const WEIGHT_CLASSES = [
+const DEFAULT_WEIGHT_CLASSES = [
 "105G", "106", "113", "114G", "120", "120G", "126", "126G",
 "132", "132G", "138", "138G", "144", "145G", "150", "152G",
 "157", "165", "165G", "175", "185+G", "190", "215", "285"];
+const WEIGHTS_KEY = "mat-scorekeeper-weight-classes";
+const parseWeights = (t: string) => Array.from(new Set(t.split(/[,\n]/).map((w) => w.trim()).filter(Boolean)));
+const loadWeights = (): string[] => {
+  try {
+    const v = JSON.parse(localStorage.getItem(WEIGHTS_KEY) || "null");
+    if (Array.isArray(v) && v.length) return v;
+  } catch {}
+  return DEFAULT_WEIGHT_CLASSES;
+};
 
 
 
@@ -19,6 +31,7 @@ interface Props {
 
 export default function MatchSetupForm({ onStart, matchCount }: Props) {
   const [boutNumber, setBoutNumber] = useState<string>(String(matchCount + 1));
+  const [weights, setWeights] = useState<string[]>(loadWeights);
   const [form, setForm] = useState<MatchSetup>({
     weightClass: "",
     redWrestler: "",
@@ -67,13 +80,16 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
       <form onSubmit={handleSubmit} className="w-full max-w-2xl scoreboard-panel p-6 md:p-8 space-y-6">
         {/* Weight class */}
         <div className="space-y-2">
-          <Label className="text-foreground font-display uppercase tracking-wider text-sm">Weight Class (lbs)</Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-foreground font-display uppercase tracking-wider text-sm">Weight Class (lbs)</Label>
+            <WeightEditor weights={weights} onSave={setWeights} />
+          </div>
           <Select onValueChange={(v) => set("weightClass", v)} value={form.weightClass}>
             <SelectTrigger className="bg-muted border-border text-foreground">
               <SelectValue placeholder="Select weight class…" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border text-foreground">
-              {WEIGHT_CLASSES.map((w) =>
+              {weights.map((w) =>
               <SelectItem key={w} value={w}>{w} lbs</SelectItem>
               )}
             </SelectContent>
@@ -141,4 +157,35 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
       </form>
     </div>);
 
+}
+function WeightEditor({ weights, onSave }: { weights: string[]; onSave: (w: string[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const parsed = parseWeights(text);
+  const save = (list: string[]) => {
+    localStorage.setItem(WEIGHTS_KEY, JSON.stringify(list));
+    onSave(list);
+    setOpen(false);
+  };
+  return (
+    <>
+      <button type="button" onClick={() => { setText(weights.join(", ")); setOpen(true); }}
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary uppercase tracking-wider">
+        <Settings className="w-3.5 h-3.5" /> Edit List
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="bg-card border-border text-foreground">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase tracking-wider">Edit Weight Classes</DialogTitle>
+            <DialogDescription>Separate weights with commas. {parsed.length} weight classes detected.</DialogDescription>
+          </DialogHeader>
+          <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={6} className="bg-muted border-border" />
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={() => setText(DEFAULT_WEIGHT_CLASSES.join(", "))}>Reset to Defaults</Button>
+            <Button type="button" disabled={!parsed.length} onClick={() => save(parsed)}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
