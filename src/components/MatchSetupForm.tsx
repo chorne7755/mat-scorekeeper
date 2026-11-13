@@ -7,7 +7,6 @@ import { MatchSetup } from "@/types/wrestling";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Settings } from "lucide-react";
-import { useState as useStateW } from "react";
 
 const DEFAULT_WEIGHT_CLASSES = [
 "105G", "106", "113", "114G", "120", "120G", "126", "126G",
@@ -32,6 +31,7 @@ interface Props {
 
 export default function MatchSetupForm({ onStart, matchCount }: Props) {
   const [boutNumber, setBoutNumber] = useState<string>(String(matchCount + 1));
+  const [weights, setWeights] = useState<string[]>(loadWeights);
   const [form, setForm] = useState<MatchSetup>({
     weightClass: "",
     redWrestler: "",
@@ -159,8 +159,8 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
 
 }
 function WeightEditor({ weights, onSave }: { weights: string[]; onSave: (w: string[]) => void }) {
-  const [open, setOpen] = useStateW(false);
-  const [text, setText] = useStateW("");
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
   const parsed = parseWeights(text);
   const save = (list: string[]) => {
     localStorage.setItem(WEIGHTS_KEY, JSON.stringify(list));
