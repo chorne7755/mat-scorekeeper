@@ -30,9 +30,10 @@ const loadWeights = (): string[] => {
 interface Props {
   onStart: (setup: MatchSetup) => void;
   matchCount: number;
+  onViewResults?: () => void;
 }
 
-export default function MatchSetupForm({ onStart, matchCount }: Props) {
+export default function MatchSetupForm({ onStart, matchCount, onViewResults }: Props) {
   const [boutNumber, setBoutNumber] = useState<string>(String(matchCount + 1));
   const [weights, setWeights] = useState<string[]>(loadWeights);
   const [form, setForm] = useState<MatchSetup>({
@@ -80,6 +81,11 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
 
         </div>
         <p className="text-muted-foreground text-sm mt-3">Enter match details to begin scoring</p>
+        {onViewResults && matchCount > 0 && (
+          <Button type="button" variant="outline" size="sm" className="mt-4" onClick={onViewResults}>
+            View Results ({matchCount})
+          </Button>
+        )}
       </div>
 
 
