@@ -44,7 +44,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       {screen === "setup" && (
-        <MatchSetupForm onStart={handleStart} matchCount={results.length} />
+        <MatchSetupForm onStart={handleStart} matchCount={results.length} onViewResults={() => setScreen("results")} />
       )}
       {screen === "scoring" && currentSetup && (
         <MatchScorer
