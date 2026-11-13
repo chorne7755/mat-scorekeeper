@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "/mat-scorekeeper/",
+  base: process.env.GITHUB_ACTIONS ? "/mat-scorekeeper/" : "/",
   server: {
     host: "::",
     port: 8080,

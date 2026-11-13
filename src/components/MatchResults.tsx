@@ -3,13 +3,15 @@ import { MatchResult } from "@/types/wrestling";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
+import { divisionFor } from "@/lib/sheetsSync";
 
 interface Props {
   results: MatchResult[];
   onNewMatch: () => void;
+  onSync: (r: MatchResult) => void;
 }
 
-export default function MatchResults({ results, onNewMatch }: Props) {
+export default function MatchResults({ results, onNewMatch, onSync }: Props) {
   const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
 
   const formatTime = (seconds: number) =>
@@ -97,6 +99,12 @@ export default function MatchResults({ results, onNewMatch }: Props) {
           >
             📊 Export to Excel
           </Button>
+          {results.some((r) => r.syncStatus === "pending") && (
+            <Button variant="outline" onClick={() => results.filter((r) => r.syncStatus === "pending").forEach(onSync)}
+              className="font-display uppercase tracking-wider">
+              Sync All Pending
+            </Button>
+          )}
           <Button
             onClick={onNewMatch}
             className="font-display uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 gold-glow"
@@ -158,6 +166,14 @@ export default function MatchResults({ results, onNewMatch }: Props) {
                   <span className="inline-block px-2 py-1 rounded text-xs font-semibold uppercase tracking-wider bg-muted text-muted-foreground">
                     {r.winType}
                   </span>
+                  <div className="mt-2 text-xs">
+                    {r.syncStatus === "synced" && <span className="text-team-green font-semibold">✓ Synced ({divisionFor(r.weightClass) === "girls" ? "Girls" : "Boys"})</span>}
+                    {r.syncStatus === "syncing" && <span className="text-muted-foreground">Sending…</span>}
+                    {r.syncStatus === "pending" && (
+                      <button type="button" onClick={(e) => { e.stopPropagation(); onSync(r); }}
+                        className="text-primary font-semibold underline">⚠ Sync Now</button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
