@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { divisionFor, fetchRosters, loadRosters, loadUrls, saveUrls, loadAutoSync, saveAutoSync, Division } from "@/lib/sheetsSync";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +43,10 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
     blueSchool: ""
   });
 
+  const [rosters, setRosters] = useState(loadRosters);
+  useEffect(() => { fetchRosters().then(setRosters); }, []);
+  const roster = form.weightClass ? rosters[divisionFor(form.weightClass)] : [...rosters.boys, ...rosters.girls];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.weightClass || !form.redWrestler || !form.blueWrestler) return;
@@ -76,6 +83,10 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
       </div>
 
 
+      <datalist id="roster-names">
+        {roster.map((n) => <option key={n} value={n} />)}
+      </datalist>
+
       {/* Form card */}
       <form onSubmit={handleSubmit} className="w-full max-w-2xl scoreboard-panel p-6 md:p-8 space-y-6">
         {/* Weight class */}
@@ -106,7 +117,9 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
               <Input
                 value={form.redWrestler}
                 onChange={(e) => set("redWrestler", e.target.value)}
-                placeholder="Last, First"
+                list="roster-names"
+                autoComplete="off"
+                placeholder="First Last"
                 className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
                 required />
 
@@ -130,7 +143,9 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
               <Input
                 value={form.blueWrestler}
                 onChange={(e) => set("blueWrestler", e.target.value)}
-                placeholder="Last, First"
+                list="roster-names"
+                autoComplete="off"
+                placeholder="First Last"
                 className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
                 required />
 
@@ -154,6 +169,7 @@ export default function MatchSetupForm({ onStart, matchCount }: Props) {
 
           Start Match
         </Button>
+        <SheetsSettings onRosters={setRosters} rosters={rosters} />
       </form>
     </div>);
 
@@ -183,6 +199,55 @@ function WeightEditor({ weights, onSave }: { weights: string[]; onSave: (w: stri
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => setText(DEFAULT_WEIGHT_CLASSES.join(", "))}>Reset to Defaults</Button>
             <Button type="button" disabled={!parsed.length} onClick={() => save(parsed)}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function SheetsSettings({ rosters, onRosters }: { rosters: Record<Division, string[]>; onRosters: (r: Record<Division, string[]>) => void }) {
+  const [open, setOpen] = useState(false);
+  const [urls, setUrls] = useState(loadUrls);
+  const [auto, setAuto] = useState(loadAutoSync);
+  const [loading, setLoading] = useState(false);
+  const refresh = async () => {
+    saveUrls(urls);
+    setLoading(true);
+    const r = await fetchRosters();
+    setLoading(false);
+    onRosters(r);
+    toast.success(`Rosters loaded: ${r.boys.length} boys, ${r.girls.length} girls`);
+  };
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)}
+        className="w-full flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-primary uppercase tracking-wider">
+        <Settings className="w-3.5 h-3.5" /> Google Sheets Sync · {rosters.boys.length} boys, {rosters.girls.length} girls
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="bg-card border-border text-foreground">
+          <DialogHeader>
+            <DialogTitle className="font-display uppercase tracking-wider">Google Sheets Sync</DialogTitle>
+            <DialogDescription>Weights with a "G" go to the Girls sheet, all others to the Boys sheet.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Boys sheet link</Label>
+              <Input value={urls.boys} onChange={(e) => setUrls({ ...urls, boys: e.target.value.trim() })} className="bg-muted border-border" />
+            </div>
+            <div className="space-y-1">
+              <Label>Girls sheet link</Label>
+              <Input value={urls.girls} onChange={(e) => setUrls({ ...urls, girls: e.target.value.trim() })} className="bg-muted border-border" />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Send each bout automatically when saved</Label>
+              <Switch checked={auto} onCheckedChange={(v) => { setAuto(v); saveAutoSync(v); }} />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" disabled={loading} onClick={refresh}>{loading ? "Loading…" : "Refresh Rosters"}</Button>
+            <Button type="button" onClick={() => { saveUrls(urls); setOpen(false); }}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -23,6 +23,8 @@ export type MatchResult = {
   winType: string;
   periods: number;
   events: ScoringEvent[];
+  syncStatus?: "synced" | "pending" | "syncing";
+  syncMessage?: string;
 };
 
 export type MatchSetup = {
