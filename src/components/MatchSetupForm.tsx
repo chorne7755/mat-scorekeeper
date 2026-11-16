@@ -81,7 +81,7 @@ export default function MatchSetupForm({ onStart, matchCount, onViewResults }: P
 
         </div>
         <p className="text-muted-foreground text-sm mt-3">Enter match details to begin scoring</p>
-        {onViewResults && matchCount > 0 && (
+        {onViewResults && (
           <Button type="button" variant="outline" size="sm" className="mt-4" onClick={onViewResults}>
             View Results ({matchCount})
           </Button>
