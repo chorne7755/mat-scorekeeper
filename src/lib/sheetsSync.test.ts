@@ -1,5 +1,22 @@
-import { describe, it, expect } from "vitest";
-import { divisionFor, isWrestlerTab } from "./sheetsSync";
+import { beforeEach, describe, it, expect } from "vitest";
+import { DEFAULT_SHEET_URLS, divisionFor, isWrestlerTab, loadUrls, saveUrls } from "./sheetsSync";
+
+describe("sheet link updates", () => {
+  beforeEach(() => localStorage.clear());
+  const boys = "https://script.google.com/macros/s/AKfycbxWqGU3Tzm1lin0KVPdndOJupx8DlWRvylypGlPArAAX3T8sISS3qh1P-5Fi9NwLG5A/exec";
+
+  it("uses the updated Boys link on a new device", () => {
+    expect(loadUrls().boys).toBe(boys);
+  });
+  it("updates a previously saved default Boys link and keeps the Girls link", () => {
+    saveUrls({ ...DEFAULT_SHEET_URLS, boys: "https://script.google.com/macros/s/AKfycbztHGl-dlqtgtaBLN3vtUHJUJJf8LF1R-Or4ne4QqSVdI0qlN-8vw61AwbxwNjvNRKNBQ/exec" });
+    expect(loadUrls()).toEqual({ boys, girls: DEFAULT_SHEET_URLS.girls });
+  });
+  it("preserves custom links", () => {
+    saveUrls({ boys: "https://example.com/boys", girls: "https://example.com/girls" });
+    expect(loadUrls()).toEqual({ boys: "https://example.com/boys", girls: "https://example.com/girls" });
+  });
+});
 
 describe("sheet routing", () => {
   it("sends G weights to the girls sheet", () => {

@@ -1,17 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MatchSetupForm from "@/components/MatchSetupForm";
 import MatchScorer from "@/components/MatchScorer";
 import MatchResults from "@/components/MatchResults";
 import { MatchSetup, MatchResult } from "@/types/wrestling";
 import { syncMatch, loadAutoSync } from "@/lib/sheetsSync";
 import { toast } from "sonner";
+import { loadResults, saveResults } from "@/lib/resultsStorage";
 
 type Screen = "setup" | "scoring" | "results";
 
 export default function Index() {
   const [screen, setScreen] = useState<Screen>("setup");
   const [currentSetup, setCurrentSetup] = useState<MatchSetup | null>(null);
-  const [results, setResults] = useState<MatchResult[]>([]);
+  const [results, setResults] = useState<MatchResult[]>(loadResults);
+
+  useEffect(() => {
+    if (!saveResults(results)) {
+      toast.error("Could not save results on this device. Export to Excel before closing this page.", { id: "results-storage-error" });
+    }
+  }, [results]);
 
   const handleStart = (setup: MatchSetup) => {
     setCurrentSetup(setup);

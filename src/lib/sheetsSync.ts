@@ -3,13 +3,14 @@ import { MatchResult } from "@/types/wrestling";
 export type Division = "boys" | "girls";
 
 export const DEFAULT_SHEET_URLS: Record<Division, string> = {
-  boys: "https://script.google.com/macros/s/AKfycbztHGl-dlqtgtaBLN3vtUHJUJJf8LF1R-Or4ne4QqSVdI0qlN-8vw61AwbxwNjvNRKNBQ/exec",
+  boys: "https://script.google.com/macros/s/AKfycbxWqGU3Tzm1lin0KVPdndOJupx8DlWRvylypGlPArAAX3T8sISS3qh1P-5Fi9NwLG5A/exec",
   girls: "https://script.google.com/macros/s/AKfycbzOFPSnKkXkVMQsl7kDavadYURk1Rk1va7bbD-_iEM7Zd2svJgSRfzGCFshK-jVNLf0Yg/exec",
 };
 
 const URLS_KEY = "mat-scorekeeper-sheet-urls";
 const ROSTER_KEY = "mat-scorekeeper-rosters";
 const AUTOSYNC_KEY = "mat-scorekeeper-autosync";
+const PREVIOUS_BOYS_URL = "https://script.google.com/macros/s/AKfycbztHGl-dlqtgtaBLN3vtUHJUJJf8LF1R-Or4ne4QqSVdI0qlN-8vw61AwbxwNjvNRKNBQ/exec";
 
 /** Any weight class containing a "G" belongs to the girls' sheet. */
 export const divisionFor = (weightClass: string): Division =>
@@ -21,7 +22,11 @@ export const isWrestlerTab = (name: string) =>
   !["points", "master", "template", "unmatched", "summary", "career records"].includes(name.toLowerCase());
 
 export const loadUrls = (): Record<Division, string> => {
-  try { return { ...DEFAULT_SHEET_URLS, ...JSON.parse(localStorage.getItem(URLS_KEY) || "{}") }; }
+  try {
+    const urls = { ...DEFAULT_SHEET_URLS, ...JSON.parse(localStorage.getItem(URLS_KEY) || "{}") };
+    if (urls.boys === PREVIOUS_BOYS_URL) urls.boys = DEFAULT_SHEET_URLS.boys;
+    return urls;
+  }
   catch { return DEFAULT_SHEET_URLS; }
 };
 export const saveUrls = (u: Record<Division, string>) => localStorage.setItem(URLS_KEY, JSON.stringify(u));
