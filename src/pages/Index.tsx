@@ -43,6 +43,16 @@ export default function Index() {
     if (loadAutoSync()) handleSync(r);
   };
 
+  const handleUpdate = (updated: MatchResult) => {
+    update(updated.id, updated);
+    toast.success("Match changes saved on this device.");
+  };
+
+  const handleDelete = (id: string) => {
+    setResults((prev) => prev.filter((r) => r.id !== id));
+    toast.success("Match deleted from this device.");
+  };
+
   const handleNewMatch = () => {
     setCurrentSetup(null);
     setScreen("setup");
@@ -61,7 +71,7 @@ export default function Index() {
         />
       )}
       {screen === "results" && (
-        <MatchResults results={results} onNewMatch={handleNewMatch} onSync={handleSync} />
+        <MatchResults results={results} onNewMatch={handleNewMatch} onSync={handleSync} onUpdate={handleUpdate} onDelete={handleDelete} />
       )}
     </div>
   );

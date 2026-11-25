@@ -4,15 +4,38 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
 import { divisionFor } from "@/lib/sheetsSync";
+import { Pencil, Trash2 } from "lucide-react";
+import MatchEditForm from "@/components/MatchEditForm";
+import { loadTeams } from "@/lib/teams";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Props {
   results: MatchResult[];
   onNewMatch: () => void;
   onSync: (r: MatchResult) => void;
+  onUpdate: (r: MatchResult) => void;
+  onDelete: (id: string) => void;
 }
 
-export default function MatchResults({ results, onNewMatch, onSync }: Props) {
+export default function MatchResults({ results, onNewMatch, onSync, onUpdate, onDelete }: Props) {
   const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MatchResult | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [teams] = useState<string[]>(loadTeams);
+
+  const saveEdit = (draft: MatchResult) => {
+    if (!selectedMatch) return;
+    const updated: MatchResult = {
+      ...draft,
+      syncStatus: "pending",
+      syncMessage: selectedMatch.syncStatus === "synced"
+        ? "Corrected on this device. Remove the old Google Sheets row before syncing again."
+        : draft.syncMessage,
+    };
+    onUpdate(updated);
+    setSelectedMatch(updated);
+    setEditing(false);
+  };
 
   const formatTime = (seconds: number) =>
     `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
@@ -123,8 +146,8 @@ export default function MatchResults({ results, onNewMatch, onSync }: Props) {
       ) : (
         <div className="space-y-3">
           {[...results].reverse().map((r) => {
-            const redWon = r.redScore > r.blueScore;
-            const greenWon = r.blueScore > r.redScore;
+            const redWon = r.winner === r.redWrestler;
+            const greenWon = r.winner === r.blueWrestler;
             return (
               <div
                 key={r.id}
@@ -175,6 +198,12 @@ export default function MatchResults({ results, onNewMatch, onSync }: Props) {
                     )}
                   </div>
                 </div>
+
+                <Button type="button" variant="ghost" size="icon" aria-label={`Delete bout ${r.boutNumber || r.id}`}
+                  className="self-center text-muted-foreground hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(r); }}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
             );
           })}
@@ -182,18 +211,21 @@ export default function MatchResults({ results, onNewMatch, onSync }: Props) {
       )}
 
       {/* Match Detail Dialog */}
-      <Dialog open={!!selectedMatch} onOpenChange={(open) => !open && setSelectedMatch(null)}>
-        <DialogContent className="max-w-lg bg-background border-border">
+      <Dialog open={!!selectedMatch} onOpenChange={(open) => { if (!open) { setSelectedMatch(null); setEditing(false); } }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background border-border">
           <DialogHeader>
             <DialogTitle className="font-display uppercase tracking-wide text-foreground">
-              Match Details
+              {editing ? "Edit Match" : "Match Details"}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
               {selectedMatch?.boutNumber && `Bout #${selectedMatch.boutNumber} — `}{selectedMatch?.weightClass} lbs — {selectedMatch?.date}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedMatch && (
+          {selectedMatch && editing && (
+            <MatchEditForm match={selectedMatch} teams={teams} onSave={saveEdit} onCancel={() => setEditing(false)} />
+          )}
+          {selectedMatch && !editing && (
             <div className="space-y-4">
               {/* Wrestlers & Score */}
               <div className="flex items-center justify-between gap-4 p-3 rounded bg-muted/30">
@@ -254,10 +286,39 @@ export default function MatchResults({ results, onNewMatch, onSync }: Props) {
                   </div>
                 </div>
               )}
+
+              <div className="flex flex-col-reverse sm:flex-row justify-between gap-2 pt-2 border-t border-border">
+                <Button type="button" variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                  onClick={() => { setDeleteTarget(selectedMatch); setSelectedMatch(null); }}>
+                  <Trash2 className="w-4 h-4 mr-2" /> Delete Match
+                </Button>
+                <Button type="button" onClick={() => setEditing(true)}>
+                  <Pencil className="w-4 h-4 mr-2" /> Edit Match
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this match?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes Bout #{deleteTarget?.boutNumber || "—"} ({deleteTarget?.redWrestler} vs {deleteTarget?.blueWrestler}) from this device and future Excel exports.
+              {deleteTarget?.syncStatus === "synced" && " Its existing Google Sheets row will not be deleted; remove that row separately."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Match</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => { if (deleteTarget) onDelete(deleteTarget.id); setDeleteTarget(null); }}>
+              Delete Match
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

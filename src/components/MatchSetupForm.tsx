@@ -10,6 +10,9 @@ import { MatchSetup } from "@/types/wrestling";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Settings } from "lucide-react";
+import TeamSelect from "@/components/TeamSelect";
+import TeamsEditor from "@/components/TeamsEditor";
+import { loadTeams } from "@/lib/teams";
 
 const DEFAULT_WEIGHT_CLASSES = [
 "105G", "106", "113", "114G", "120", "120G", "126", "126G",
@@ -36,6 +39,7 @@ interface Props {
 export default function MatchSetupForm({ onStart, matchCount, onViewResults }: Props) {
   const [boutNumber, setBoutNumber] = useState<string>(String(matchCount + 1));
   const [weights, setWeights] = useState<string[]>(loadWeights);
+  const [teams, setTeams] = useState<string[]>(loadTeams);
   const [form, setForm] = useState<MatchSetup>({
     weightClass: "",
     redWrestler: "",
@@ -114,6 +118,9 @@ export default function MatchSetupForm({ onStart, matchCount, onViewResults }: P
         </div>
 
         {/* Two columns for teams */}
+        <div className="flex justify-end -mb-3">
+          <TeamsEditor teams={teams} onSave={setTeams} />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Red corner */}
           <div className="space-y-3 p-4 rounded-lg border border-team-red/30 bg-team-red/5">
@@ -132,11 +139,7 @@ export default function MatchSetupForm({ onStart, matchCount, onViewResults }: P
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">School / Team</Label>
-              <Input
-                value={form.redSchool}
-                onChange={(e) => set("redSchool", e.target.value)}
-                placeholder="School name"
-                className="bg-muted border-border text-foreground placeholder:text-muted-foreground" />
+              <TeamSelect value={form.redSchool} teams={teams} onChange={(value) => set("redSchool", value)} placeholder="Select red team…" />
 
             </div>
           </div>
@@ -158,11 +161,7 @@ export default function MatchSetupForm({ onStart, matchCount, onViewResults }: P
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground text-xs uppercase tracking-wider">School / Team</Label>
-              <Input
-                value={form.blueSchool}
-                onChange={(e) => set("blueSchool", e.target.value)}
-                placeholder="School name"
-                className="bg-muted border-border text-foreground placeholder:text-muted-foreground" />
+              <TeamSelect value={form.blueSchool} teams={teams} onChange={(value) => set("blueSchool", value)} placeholder="Select green team…" />
 
             </div>
           </div>
